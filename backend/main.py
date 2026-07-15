@@ -35,12 +35,11 @@ class Post(Base):
     __tablename__ = "posts"
 
     id = Column(Integer, primary_key=True, index=True)
-    category = Column(String, nullable=False, default="구미경북")
     title = Column(String(100), nullable=False)
     content = Column(Text, nullable=False)
     author = Column(String(50), default="ㅇㅇ")
     password = Column(String(4), nullable=False)
-    category = Column(String(50), default="일반")  # 카테고리 기본값 추가
+    category = Column(String(50), default="일반")  # 카테고리 필드 하나만 유지
 
 class PostCreate(BaseModel):
     title: str
@@ -84,7 +83,6 @@ def read_root():
 @app.post("/api/posts", status_code=201)
 def create_post(post: PostCreate, db: Session = Depends(get_db)):
     new_post = Post(
-        category="구미경북",
         title=post.title,
         content=post.content,
         author=post.author,
@@ -148,7 +146,6 @@ def get_tourist_spots():
 def get_weather(region: str = "Gumi"):
     api_key = os.getenv("WEATHER_API_KEY")
     
-    # 고령, 성주 등 군 단위 지역을 OpenWeatherMap이 인식하는 인근 대도시 명칭으로 매핑
     region_mapping = {
         "구미": "Gumi",
         "대구": "Daegu",
@@ -211,7 +208,6 @@ class ChatResponse(BaseModel):
 @app.post("/api/chat", response_model=ChatResponse)
 def chat_bot(request: ChatRequest):
     try:
-        # 1. 로컬 관광지 데이터 읽어오기
         file_path = "구미_경북권_관광지.json"
         spots_info = ""
         if os.path.exists(file_path):
@@ -221,11 +217,8 @@ def chat_bot(request: ChatRequest):
                 spots_info = ", ".join([f"{s.get('title')}({s.get('addr1', '')})" for s in items[:20]])
 
         msg = request.message
-
-        # 💡 [핵심 수정] 함수 내부에서 환경 변수를 직접 확인하여 변수 없음(NameError) 에러 차단
         current_api_key = os.getenv("OPENAI_API_KEY")
 
-        # 2. AI에게 전달할 프롬프트 구성
         prompt = f"""
         너는 구미 및 경북권 스마트 관광 도우미야. 
         아래 참고용 지역 관광지 데이터와 사용자의 질문을 바탕으로 친절하고 유익한 여행 추천 및 안내 답변을 작성해줘.
@@ -237,9 +230,7 @@ def chat_bot(request: ChatRequest):
         {msg}
         """
         
-        # 3. OpenAI API 호출
         if current_api_key:
-            # 안전하게 여기서 클라이언트 객체 생성
             from openai import OpenAI
             client = OpenAI(api_key=current_api_key)
             
