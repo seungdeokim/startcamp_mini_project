@@ -74,13 +74,15 @@ async function handleConfirm(password: string) {
     <p v-else-if="errorMessage" class="board-detail__status board-detail__status--error">{{ errorMessage }}</p>
 
     <template v-else-if="post">
-      <h1 class="board-detail__title">{{ post.title }}</h1>
-      <p class="board-detail__author">작성자: {{ post.author }}</p>
-      <div class="board-detail__content">{{ post.content }}</div>
+      <div class="board-detail__card">
+        <h1 class="board-detail__title">{{ post.title }}</h1>
+        <p class="board-detail__author">작성자: {{ post.author }}</p>
+        <div class="board-detail__content">{{ post.content }}</div>
 
-      <div class="board-detail__actions">
-        <button type="button" class="board-detail__edit-btn" @click="openModal('edit')">수정</button>
-        <button type="button" class="board-detail__delete-btn" @click="openModal('delete')">삭제</button>
+        <div class="board-detail__actions">
+          <button type="button" class="board-detail__edit-btn" @click="openModal('edit')">수정</button>
+          <button type="button" class="board-detail__delete-btn" @click="openModal('delete')">삭제</button>
+        </div>
       </div>
     </template>
 
@@ -103,6 +105,13 @@ async function handleConfirm(password: string) {
 
 .board-detail__status--error {
   color: var(--color-danger);
+}
+
+.board-detail__card {
+  background: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
 }
 
 .board-detail__title {
@@ -133,14 +142,24 @@ async function handleConfirm(password: string) {
 
 .board-detail__edit-btn,
 .board-detail__delete-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 0.55rem 1.2rem;
+  border-radius: var(--radius-full);
   border: 1px solid var(--color-border);
   background: var(--color-background);
+  font-weight: 600;
+}
+
+.board-detail__edit-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .board-detail__delete-btn {
   color: var(--color-danger);
-  border-color: var(--color-danger);
+  border-color: var(--color-danger-soft);
+}
+
+.board-detail__delete-btn:hover {
+  background: var(--color-danger-soft);
 }
 </style>

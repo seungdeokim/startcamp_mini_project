@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import AppHeader from './AppHeader.vue'
+import BottomTabBar from './BottomTabBar.vue'
+
+const route = useRoute()
+const isFullBleed = computed(() => Boolean(route.meta.fullBleed))
 </script>
 
 <template>
   <div class="app-layout">
     <AppHeader />
-    <main class="app-layout__content">
+    <main class="app-layout__content" :class="{ 'app-layout__content--full-bleed': isFullBleed }">
       <RouterView />
     </main>
-    <footer class="app-layout__footer">
+    <footer v-if="!isFullBleed" class="app-layout__footer">
       <p>© LocalHub 교육 프로젝트 | 본 화면은 초안 와이어프레임입니다.</p>
     </footer>
+    <BottomTabBar />
   </div>
 </template>
 
@@ -30,6 +36,12 @@ import AppHeader from './AppHeader.vue'
   padding: 1.5rem 1.25rem 3rem;
 }
 
+.app-layout__content--full-bleed {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+
 .app-layout__footer {
   text-align: center;
   padding: 1.5rem;
@@ -41,6 +53,16 @@ import AppHeader from './AppHeader.vue'
 @media (max-width: 480px) {
   .app-layout__content {
     padding: 1rem 0.85rem 2rem;
+  }
+
+  .app-layout__content--full-bleed {
+    padding: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-layout__content:not(.app-layout__content--full-bleed) {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
   }
 }
 </style>

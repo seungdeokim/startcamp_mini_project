@@ -8,34 +8,35 @@
   --vt-c-black-soft: #222222;
   --vt-c-black-mute: #282828;
 
-  --vt-c-indigo: #2c3e50;
-
-  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
   --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
   --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
 
-  --vt-c-text-light-1: var(--vt-c-indigo);
-  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
   --vt-c-text-dark-1: var(--vt-c-white);
   --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
 }
 
-/* semantic color variables for this project */
+/* semantic color variables — 당근마켓 스타일 웜톤 브랜드 컬러 */
 :root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
+  --color-background: #ffffff;
+  --color-background-soft: #f8f9fa;
+  --color-background-mute: #f1f3f5;
 
-  --color-border: var(--vt-c-divider-light-2);
-  --color-border-hover: var(--vt-c-divider-light-1);
+  --color-border: #e9ecef;
+  --color-border-hover: #dee2e6;
 
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
-  --color-text-soft: rgba(60, 60, 60, 0.6);
+  --color-heading: #212529;
+  --color-text: #212529;
+  --color-text-soft: #868e96;
 
-  --color-primary: #2563eb;
-  --color-primary-soft: #eff4ff;
+  /* 당근 주황 */
+  --color-primary: #ff7e36;
+  --color-primary-hover: #f26a1f;
+  --color-primary-soft: #fff1e6;
+
+  /* 네이버 그린 (지도 활성 마커/포인트용 보조 컬러) */
+  --color-secondary: #03c75a;
+  --color-secondary-soft: #e6fbef;
+
   --color-danger: #dc2626;
   --color-danger-soft: #fef2f2;
   --color-warning: #d97706;
@@ -44,6 +45,15 @@
   --color-info-soft: #eff6ff;
   --color-success: #16a34a;
   --color-success-soft: #f0fdf4;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(33, 37, 41, 0.05);
+  --shadow-md: 0 4px 16px rgba(33, 37, 41, 0.08);
+  --shadow-lg: 0 12px 32px rgba(33, 37, 41, 0.14);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -59,8 +69,13 @@
     --color-text: var(--vt-c-text-dark-2);
     --color-text-soft: rgba(235, 235, 235, 0.5);
 
-    --color-primary: #60a5fa;
-    --color-primary-soft: rgba(37, 99, 235, 0.15);
+    --color-primary: #ff9d5c;
+    --color-primary-hover: #ffb27e;
+    --color-primary-soft: rgba(255, 126, 54, 0.16);
+
+    --color-secondary: #3ddc8f;
+    --color-secondary-soft: rgba(3, 199, 90, 0.16);
+
     --color-danger: #f87171;
     --color-danger-soft: rgba(248, 113, 113, 0.12);
     --color-warning: #fbbf24;
@@ -69,6 +84,10 @@
     --color-info-soft: rgba(96, 165, 250, 0.12);
     --color-success: #4ade80;
     --color-success-soft: rgba(74, 222, 128, 0.12);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -83,17 +102,20 @@
 body {
   min-height: 100vh;
   color: var(--color-text);
-  background: var(--color-background);
+  background: var(--color-background-soft);
   transition:
-    color 0.5s,
-    background-color 0.5s;
+    color 0.3s,
+    background-color 0.3s;
   line-height: 1.6;
+  letter-spacing: -0.01em;
   font-family:
-    Inter,
+    'Pretendard Variable',
+    Pretendard,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
     Roboto,
+    'Malgun Gothic',
     Oxygen,
     Ubuntu,
     Cantarell,
@@ -101,8 +123,36 @@ body {
     'Droid Sans',
     'Helvetica Neue',
     sans-serif;
-  font-size: 15px;
+  font-size: 12px;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-heading);
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  /* color: var(--color-primary); */
+  text-decoration: none;
+}
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  /* color: var(--color-primary); */
+  text-decoration: none;
+}
+
+h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  /* color: var(--color-primary); */
+  text-decoration: none;
 }

@@ -21,7 +21,7 @@ import { RouterLink } from 'vue-router'
   top: 0;
   z-index: 20;
   background: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .app-header__inner {
@@ -34,25 +34,34 @@ import { RouterLink } from 'vue-router'
 }
 
 .app-header__brand {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 800;
   color: var(--color-primary);
   text-decoration: none;
 }
 
 .app-header__nav {
   display: flex;
-  gap: 1.25rem;
+  gap: 0.35rem;
 }
 
 .app-header__nav a {
-  color: var(--color-text);
+  color: var(--color-text-soft);
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-full);
 }
 
 .app-header__nav a.router-link-active {
-  color: var(--color-primary);
-  font-weight: 600;
+  color: var(--color-heading);
+  background: var(--color-background-soft);
+}
+
+@media (max-width: 720px) {
+  .app-header__nav {
+    display: none;
+  }
 }
 </style>

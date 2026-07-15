@@ -109,19 +109,21 @@ function handlePageChange(page: number) {
 }
 
 .info__search {
+  font-size: 0.7rem;
   flex: 1;
-  padding: 0.5rem 0.75rem;
+  padding: 0.6rem 1rem;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: var(--radius-full);
   background: var(--color-background);
   color: var(--color-text);
 }
 
 .info__search-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.1rem;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-background-soft);
+  border-radius: var(--radius-full);
+  background: var(--color-background);
+  font-weight: 600;
 }
 
 .info__status {
@@ -136,17 +138,30 @@ function handlePageChange(page: number) {
 
 .info__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
+}
+
+@media (max-width: 720px) {
+  .info__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .info__card {
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--color-background);
   text-align: left;
   padding: 0;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease;
+}
+
+.info__card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
 }
 
 .info__card-image {

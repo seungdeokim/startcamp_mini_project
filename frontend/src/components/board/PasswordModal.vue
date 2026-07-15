@@ -59,10 +59,11 @@ function handleConfirm() {
 
 .password-modal {
   background: var(--color-background);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   width: min(320px, 90vw);
   text-align: center;
+  box-shadow: var(--shadow-lg);
 }
 
 .password-modal h2 {
@@ -72,12 +73,18 @@ function handleConfirm() {
 
 .password-modal__input {
   width: 100%;
-  padding: 0.6rem 0.75rem;
+  padding: 0.65rem 0.9rem;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-background);
+  border-radius: var(--radius-md);
+  background: var(--color-background-soft);
   color: var(--color-text);
   margin-bottom: 0.5rem;
+}
+
+.password-modal__input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-background);
 }
 
 .password-modal__error {
@@ -88,12 +95,16 @@ function handleConfirm() {
 
 .password-modal__confirm {
   width: 100%;
-  padding: 0.6rem 0.75rem;
-  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-full);
   border: none;
   background: var(--color-primary);
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.password-modal__confirm:not(:disabled):hover {
+  background: var(--color-primary-hover);
 }
 
 .password-modal__confirm:disabled {

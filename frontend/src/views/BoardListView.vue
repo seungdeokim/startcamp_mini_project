@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { getPosts } from '@/api/posts'
 import { ApiError } from '@/api/client'
 import type { Post } from '@/types/post'
 import Pagination from '@/components/common/Pagination.vue'
 
 const PAGE_SIZE = 10
+
+const router = useRouter()
 
 const posts = ref<Post[]>([])
 const isLoading = ref(true)
@@ -49,6 +51,10 @@ function handleSearch() {
 function handlePageChange(page: number) {
   currentPage.value = page
 }
+
+function goToDetail(id: number) {
+  router.push(`/board/${id}`)
+}
 </script>
 
 <template>
@@ -71,26 +77,15 @@ function handlePageChange(page: number) {
     <p v-else-if="errorMessage" class="board-list__status board-list__status--error">{{ errorMessage }}</p>
     <p v-else-if="pagedPosts.length === 0" class="board-list__status">게시글이 없습니다.</p>
 
-    <div v-else class="board-list__table-wrap">
-      <table class="board-list__table">
-        <thead>
-          <tr>
-            <th>번호</th>
-            <th>제목</th>
-            <th>작성자</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="post in pagedPosts" :key="post.id">
-            <td>{{ post.id }}</td>
-            <td class="board-list__title-cell">
-              <RouterLink :to="`/board/${post.id}`">{{ post.title }}</RouterLink>
-            </td>
-            <td>{{ post.author }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <ul v-else class="board-list__list">
+      <li v-for="post in pagedPosts" :key="post.id">
+        <button type="button" class="board-list__row" @click="goToDetail(post.id)">
+          <span class="board-list__id">{{ post.id }}</span>
+          <span class="board-list__title">{{ post.title }}</span>
+          <span class="board-list__author">{{ post.author }}</span>
+        </button>
+      </li>
+    </ul>
 
     <Pagination :current-page="currentPage" :total-pages="totalPages" @change="handlePageChange" />
   </section>
@@ -105,32 +100,35 @@ function handlePageChange(page: number) {
 
 .board-list__search {
   flex: 1;
-  padding: 0.5rem 0.75rem;
+  font-size: 0.7rem;
+  padding: 0.6rem 1rem;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: var(--radius-full);
   background: var(--color-background);
   color: var(--color-text);
 }
 
 .board-list__search-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.1rem;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-background-soft);
+  border-radius: var(--radius-full);
+  background: var(--color-background);
+  font-weight: 600;
 }
 
 .board-list__write-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-full);
   background: var(--color-primary);
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
+  box-shadow: var(--shadow-sm);
 }
 
 .board-list__write-btn:hover {
   text-decoration: none;
-  opacity: 0.9;
+  background: var(--color-primary-hover);
 }
 
 .board-list__status {
@@ -143,31 +141,54 @@ function handlePageChange(page: number) {
   color: var(--color-danger);
 }
 
-.board-list__table-wrap {
-  overflow-x: auto;
+.board-list__list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.board-list__table {
+.board-list__row {
   width: 100%;
-  min-width: 420px;
-  border-collapse: collapse;
-}
-
-.board-list__table th,
-.board-list__table td {
-  padding: 0.75rem 0.5rem;
-  border-bottom: 1px solid var(--color-border);
-  text-align: left;
-}
-
-.board-list__table th {
-  color: var(--color-text-soft);
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-.board-list__title-cell a {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  box-shadow: var(--shadow-sm);
   color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.board-list__row:hover,
+.board-list__row:focus-visible {
+  background: var(--color-primary-soft);
+  outline: none;
+}
+
+.board-list__id {
+  flex-shrink: 0;
+  width: 2rem;
+  color: var(--color-text-soft);
+  font-size: 0.8rem;
+}
+
+.board-list__title {
+  flex: 1;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-list__author {
+  flex-shrink: 0;
+  color: var(--color-text-soft);
+  font-size: 0.85rem;
 }
 
 @media (max-width: 480px) {
@@ -178,9 +199,5 @@ function handlePageChange(page: number) {
   .board-list__search {
     flex-basis: 100%;
   }
-}
-
-.board-list__title-cell a:hover {
-  color: var(--color-primary);
 }
 </style>

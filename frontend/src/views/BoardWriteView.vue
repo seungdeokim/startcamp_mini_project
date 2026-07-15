@@ -83,7 +83,7 @@ function handleCancel() {
 
     <p v-if="isLoading" class="board-write__status">불러오는 중입니다...</p>
 
-    <form v-else class="board-write__form" @submit.prevent="handleSubmit">
+    <form v-else class="board-write__form board-write__card" @submit.prevent="handleSubmit">
       <label class="board-write__field">
         <span>제목</span>
         <input v-model="title" type="text" placeholder="제목을 입력하세요" />
@@ -130,6 +130,13 @@ function handleCancel() {
   margin-top: 1rem;
 }
 
+.board-write__card {
+  background: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+}
+
 .board-write__field {
   display: flex;
   flex-direction: column;
@@ -143,13 +150,20 @@ function handleCancel() {
 
 .board-write__field input,
 .board-write__field textarea {
-  padding: 0.6rem 0.75rem;
+  padding: 0.65rem 0.9rem;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-background);
+  border-radius: var(--radius-md);
+  background: var(--color-background-soft);
   color: var(--color-text);
   font-family: inherit;
   resize: vertical;
+}
+
+.board-write__field input:focus,
+.board-write__field textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-background);
 }
 
 .board-write__field small {
@@ -170,9 +184,9 @@ function handleCancel() {
 
 .board-write__cancel-btn,
 .board-write__submit-btn {
-  padding: 0.6rem 1.25rem;
-  border-radius: 6px;
-  font-weight: 600;
+  padding: 0.6rem 1.4rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
 }
 
 .board-write__cancel-btn {
@@ -184,6 +198,11 @@ function handleCancel() {
   border: none;
   background: var(--color-primary);
   color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.board-write__submit-btn:not(:disabled):hover {
+  background: var(--color-primary-hover);
 }
 
 .board-write__submit-btn:disabled {

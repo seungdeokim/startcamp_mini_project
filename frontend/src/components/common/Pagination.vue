@@ -62,19 +62,20 @@ function goNextBlock() {
 
 .pagination__page,
 .pagination__arrow {
-  min-width: 2rem;
-  height: 2rem;
+  min-width: 2.1rem;
+  height: 2.1rem;
   border: 1px solid var(--color-border);
   background: var(--color-background);
-  border-radius: 6px;
-  color: var(--color-text);
+  border-radius: var(--radius-full);
+  color: var(--color-text-soft);
   font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .pagination__page--active {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  font-weight: 700;
+  border-color: var(--color-heading);
+  background: var(--color-heading);
+  color: var(--color-background);
 }
 
 .pagination__arrow:disabled {

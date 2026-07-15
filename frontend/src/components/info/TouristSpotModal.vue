@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { X } from '@lucide/vue'
 import type { TouristSpot } from '@/types/tourist'
 
 defineProps<{
@@ -13,7 +14,9 @@ const emit = defineEmits<{
 <template>
   <div v-if="spot" class="spot-modal__backdrop" @click.self="emit('close')">
     <div class="spot-modal">
-      <button type="button" class="spot-modal__close" @click="emit('close')">✕</button>
+      <button type="button" class="spot-modal__close" aria-label="닫기" @click="emit('close')">
+        <X :size="18" />
+      </button>
 
       <img v-if="spot.firstimage" :src="spot.firstimage" :alt="spot.title" class="spot-modal__image" />
       <div v-else class="spot-modal__image spot-modal__image--placeholder">이미지 없음</div>
@@ -40,11 +43,12 @@ const emit = defineEmits<{
 .spot-modal {
   position: relative;
   background: var(--color-background);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   width: min(420px, 100%);
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: var(--shadow-lg);
 }
 
 .spot-modal__close {
@@ -61,7 +65,7 @@ const emit = defineEmits<{
   width: 100%;
   height: 200px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   margin-bottom: 1rem;
   background: var(--color-background-mute);
 }
