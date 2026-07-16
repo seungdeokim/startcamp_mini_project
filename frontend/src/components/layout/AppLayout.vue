@@ -16,7 +16,9 @@ const isFullBleed = computed(() => Boolean(route.meta.fullBleed))
       <RouterView />
     </main>
     <footer v-if="!isFullBleed" class="app-layout__footer">
-      <p>© Gumi Log 교육 프로젝트 | 본 화면은 초안 와이어프레임입니다.</p>
+      <p class="app-layout__footer-brand">Gumi Log</p>
+      <p>구미 · 경북 지역 정보 공유 커뮤니티</p>
+      <p class="app-layout__footer-copy">© 2026 Gumi Log · SSAFY 구미 4반 5조 김승덕 박우진</p>
     </footer>
     <BottomTabBar />
     <ChatWidget />
@@ -45,11 +47,26 @@ const isFullBleed = computed(() => Boolean(route.meta.fullBleed))
 }
 
 .app-layout__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   text-align: center;
-  padding: 1.5rem;
+  padding: 2rem 1.5rem;
   font-size: var(--text-xs);
   color: var(--color-text-soft);
   border-top: 1px solid var(--color-border);
+}
+
+.app-layout__footer-brand {
+  font-size: var(--text-md);
+  font-weight: var(--weight-extrabold);
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+}
+
+.app-layout__footer-copy {
+  margin-top: 0.35rem;
+  opacity: 0.8;
 }
 
 @media (max-width: 480px) {
