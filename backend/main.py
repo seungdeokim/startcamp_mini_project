@@ -264,7 +264,7 @@ def chat_bot(request: ChatRequest):
             openai_client = OpenAI(api_key=current_api_key)
 
             response = openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-5-mini",
                 temperature=0.7,
                 messages=[
                     {
