@@ -5,7 +5,10 @@ import { RouterLink } from 'vue-router'
 <template>
   <header class="app-header">
     <div class="app-header__inner">
-      <RouterLink to="/" class="app-header__brand">LocalHub</RouterLink>
+      <RouterLink to="/" class="app-header__brand-group">
+        <span class="app-header__brand">Gumi Log</span>
+        <span class="app-header__tagline">구미경북</span>
+      </RouterLink>
       <nav class="app-header__nav">
         <RouterLink to="/board">게시판</RouterLink>
         <RouterLink to="/info">지역정보</RouterLink>
@@ -33,11 +36,25 @@ import { RouterLink } from 'vue-router'
   justify-content: space-between;
 }
 
-.app-header__brand {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--color-primary);
+.app-header__brand-group {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
   text-decoration: none;
+}
+
+.app-header__brand {
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--color-primary);
+}
+
+.app-header__tagline {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  letter-spacing: -0.01em;
 }
 
 .app-header__nav {

@@ -70,7 +70,7 @@ onMounted(async () => {
 <template>
   <section class="home">
     <div class="home__banner">
-      <h1>지역 정보 공유 커뮤니티 LocalHub</h1>
+      <h1>지역 정보 공유 커뮤니티 Gumi Log</h1>
       <p>구미/경북 지역 정보를 한눈에 만나보세요!</p>
     </div>
 

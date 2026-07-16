@@ -1,6 +1,6 @@
-# LocalHub 프론트엔드 (구미/경북)
+# Gumi Log 프론트엔드 (구미/경북)
 
-공공데이터 기반 지역 정보 공유 커뮤니티 LocalHub의 프론트엔드(Vue 3 + TypeScript + Vite)입니다.
+공공데이터 기반 지역 정보 공유 커뮤니티 Gumi Log의 프론트엔드(Vue 3 + TypeScript + Vite)입니다.
 
 ## 현재 구현 범위
 

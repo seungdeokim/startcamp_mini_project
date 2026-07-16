@@ -1,7 +1,7 @@
 ```markdown
-# 🌐 LocalHub Backend API
+# 🌐 Gumi Log Backend API
 
-구미 및 경북권 지역 커뮤니티와 스마트 관광 안내를 제공하는 **LocalHub** 프로젝트의 백엔드 서버입니다. FastAPI와 SQLite를 기반으로 가볍고 빠르게 동작하며, 외부 API(OpenWeather, OpenAI 등)와 연동되어 있습니다.
+구미 및 경북권 지역 커뮤니티와 스마트 관광 안내를 제공하는 **Gumi Log** 프로젝트의 백엔드 서버입니다. FastAPI와 SQLite를 기반으로 가볍고 빠르게 동작하며, 외부 API(OpenWeather, OpenAI 등)와 연동되어 있습니다.
 
 ---
 

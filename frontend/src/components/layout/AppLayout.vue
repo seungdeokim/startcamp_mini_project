@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppHeader from './AppHeader.vue'
 import BottomTabBar from './BottomTabBar.vue'
+import ChatWidget from '@/components/chat/ChatWidget.vue'
 
 const route = useRoute()
 const isFullBleed = computed(() => Boolean(route.meta.fullBleed))
@@ -15,9 +16,10 @@ const isFullBleed = computed(() => Boolean(route.meta.fullBleed))
       <RouterView />
     </main>
     <footer v-if="!isFullBleed" class="app-layout__footer">
-      <p>© LocalHub 교육 프로젝트 | 본 화면은 초안 와이어프레임입니다.</p>
+      <p>© Gumi Log 교육 프로젝트 | 본 화면은 초안 와이어프레임입니다.</p>
     </footer>
     <BottomTabBar />
+    <ChatWidget />
   </div>
 </template>
 

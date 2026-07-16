@@ -54,7 +54,7 @@ class PostAction(BaseModel):
 # 테이블 자동 생성
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="LocalHub API", description="익명 커뮤니티 및 관광/날씨/Gemini API")
+app = FastAPI(title="Gumi Log API", description="익명 커뮤니티 및 관광/날씨/Gemini API")
 
 # 프론트엔드 연동을 위한 CORS 설정
 app.add_middleware(
@@ -78,7 +78,7 @@ def get_db():
 # ==========================================
 @app.get("/")
 def read_root():
-    return {"message": "LocalHub 백엔드 서버가 정상적으로 실행 중입니다!"}
+    return {"message": "Gumi Log 백엔드 서버가 정상적으로 실행 중입니다!"}
 
 @app.post("/api/posts", status_code=201)
 def create_post(post: PostCreate, db: Session = Depends(get_db)):
@@ -269,7 +269,7 @@ def chat_bot(request: ChatRequest):
                     {
                         "role": "system",
                         "content": (
-                            "너는 구미 및 경북권 스마트 관광 도우미 '로컬허브 AI'야. "
+                            "너는 구미 및 경북권 스마트 관광 도우미 'Gumi Log AI'야. "
                             "제공된 날씨와 추천 관광지 정보를 참고해서 실제로 방문할 만한 구체적인 코스를 추천해줘. "
                             "관광지 이름은 굵게 강조하고, 여러 곳을 추천할 땐 목록으로 정리해줘. "
                             "날씨가 좋지 않으면 실내 위주로, 화창하면 야외 위주로 추천해줘. "
@@ -282,7 +282,7 @@ def chat_bot(request: ChatRequest):
             )
             reply_text = response.choices[0].message.content
         else:
-            reply_text = "[LocalHub AI] .env 파일에 OPENAI_API_KEY가 설정되지 않았습니다."
+            reply_text = "[Gumi Log AI] .env 파일에 OPENAI_API_KEY가 설정되지 않았습니다."
 
         return {"reply": reply_text}
         
