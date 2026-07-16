@@ -142,57 +142,60 @@ def get_tourist_spots():
         
     return data.get("items", [])
 
-@app.get("/api/weather")
-def get_weather(region: str = "Gumi"):
+REGION_MAPPING = {
+    "구미": "Gumi",
+    "대구": "Daegu",
+    "김천": "Gimcheon",
+    "상주": "Sangju",
+    "칠곡": "Chilgok",
+    "고령": "Daegu",
+    "성주": "Daegu",
+    "경산": "Gyeongsan",
+    "안동": "Andong",
+    "포항": "Pohang",
+    "경주": "Gyeongju"
+}
+
+def resolve_region(text: str) -> str:
+    if text in ["Gumi", "Daegu", "Gimcheon", "Sangju", "Chilgok"]:
+        return text
+    for korean_name, eng_name in REGION_MAPPING.items():
+        if korean_name in text:
+            return eng_name
+    return "Gumi"
+
+def fetch_weather_data(region: str) -> dict:
     api_key = os.getenv("WEATHER_API_KEY")
-    
-    region_mapping = {
-        "구미": "Gumi",
-        "대구": "Daegu",
-        "김천": "Gimcheon",
-        "상주": "Sangju",
-        "칠곡": "Chilgok",
-        "고령": "Daegu",
-        "성주": "Daegu",
-        "경산": "Gyeongsan",
-        "안동": "Andong",
-        "포항": "Pohang",
-        "경주": "Gyeongju"
-    }
-    
-    target_region = "Gumi"
-    for korean_name, eng_name in region_mapping.items():
-        if korean_name in region:
-            target_region = eng_name
-            break
-            
-    if region in ["Gumi", "Daegu", "Gimcheon", "Sangju", "Chilgok"]:
-        target_region = region
+    target_region = resolve_region(region)
 
     if not api_key or api_key == "여기에_실제_API_키를_입력하세요":
         return {
-            "region": region, 
-            "weather": "맑음", 
+            "region": region,
+            "weather": "맑음",
             "temp": 28.5,
             "humidity": 55,
             "note": "API 키가 설정되지 않아 임시 데이터를 반환합니다."
         }
-        
+
     url = f"http://api.openweathermap.org/data/2.5/weather?q={target_region}&appid={api_key}&units=metric&lang=kr"
-    
+    response = requests.get(url)
+    data = response.json()
+
+    if response.status_code == 200:
+        return {
+            "region": region,
+            "weather": data["weather"][0]["description"],
+            "temp": data["main"]["temp"],
+            "humidity": data["main"]["humidity"]
+        }
+    raise HTTPException(status_code=response.status_code, detail="날씨 정보를 가져오는 데 실패했습니다.")
+
+@app.get("/api/weather")
+def get_weather(region: str = "Gumi"):
     try:
-        response = requests.get(url)
-        data = response.json()
-        
-        if response.status_code == 200:
-            return {
-                "region": region,
-                "weather": data["weather"][0]["description"],
-                "temp": data["main"]["temp"],
-                "humidity": data["main"]["humidity"]
-            }
-        else:
-            raise HTTPException(status_code=response.status_code, detail="날씨 정보를 가져오는 데 실패했습니다.")
+        return fetch_weather_data(region)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -212,53 +215,71 @@ def chat_bot(request: ChatRequest):
         spots_info = ""
         msg = request.message
         
+        region = resolve_region(msg)
+
         if os.path.exists(file_path):
             with open(file_path, "r", encoding="utf-8") as f:
                 json_data = json.load(f)
                 items = json_data.get("items", [])
-                
-                # 1. 사용자 질문에 맞춰 유동적으로 관광지 필터링
-                relevant_spots = []
-                for s in items:
-                    title = s.get('title', '')
-                    # 질문에 관광지 이름이 직접 포함되어 있으면 추가
-                    if title and title in msg:
-                        relevant_spots.append(s)
-                
-                # 2. 딱히 겹치는 키워드가 없으면 전체에서 랜덤으로 4개만 추출 (토큰 절약 및 다양성 확보)
+
+                # 1. 질문에 관광지 이름이 직접 언급됐으면 그것부터 우선 매칭
+                relevant_spots = [s for s in items if s.get('title') and s.get('title') in msg]
+
+                # 2. 이름 매칭이 없으면 질문에서 유추한 지역(addr1)으로 매칭
+                if not relevant_spots:
+                    region_keyword = next((k for k in REGION_MAPPING if k in msg), None)
+                    if region_keyword:
+                        relevant_spots = [s for s in items if region_keyword in s.get('addr1', '')]
+
+                # 3. 그래도 없으면 전체에서 랜덤으로 추출 (토큰 절약 및 다양성 확보)
                 if not relevant_spots:
                     relevant_spots = random.sample(items, min(4, len(items))) if items else []
                 else:
-                    relevant_spots = relevant_spots[:4] # 최대 4개까지만 제한
-                    
+                    relevant_spots = random.sample(relevant_spots, min(4, len(relevant_spots)))
+
                 # 보기 좋게 문자열로 포맷팅
                 spots_info = "\n".join([f"- {s.get('title')} ({s.get('addr1', '주소 미상')})" for s in relevant_spots])
 
+        try:
+            weather = fetch_weather_data(region)
+            weather_info = f"{weather['weather']}, 기온 {weather['temp']}°C, 습도 {weather['humidity']}%"
+        except Exception:
+            weather_info = "정보 없음"
+
         current_api_key = os.getenv("OPENAI_API_KEY")
 
-        # 프롬프트 개선: 고정 20개가 아닌, 필터링/랜덤화된 소수 정예 정보만 전달
         prompt = f"""
-        너는 구미 및 경북권 스마트 관광 도우미야. 
-        아래 제공된 [추천 관광지 정보]를 바탕으로 사용자의 [질문]에 친절하고 유익하게 답변해줘.
-        
+        [오늘 {region} 날씨]
+        {weather_info}
+
         [추천 관광지 정보]
         {spots_info}
-        
+
         [질문]
         {msg}
         """
-        
+
         if current_api_key:
             from openai import OpenAI
-            client = OpenAI(api_key=current_api_key)
-            
-            # gpt-5-mini는 없는 모델이므로 에러 방지를 위해 gpt-4o-mini로 변경
-            response = client.chat.completions.create(
+            openai_client = OpenAI(api_key=current_api_key)
+
+            response = openai_client.chat.completions.create(
                 model="gpt-4o-mini",
+                temperature=0.7,
                 messages=[
-                    {"role": "system", "content": "You are a helpful travel assistant."},
-                    {"role": "user", "content": prompt}
-                ]
+                    {
+                        "role": "system",
+                        "content": (
+                            "너는 구미 및 경북권 스마트 관광 도우미 '로컬허브 AI'야. "
+                            "제공된 날씨와 추천 관광지 정보를 참고해서 실제로 방문할 만한 구체적인 코스를 추천해줘. "
+                            "관광지 이름은 굵게 강조하고, 여러 곳을 추천할 땐 목록으로 정리해줘. "
+                            "날씨가 좋지 않으면 실내 위주로, 화창하면 야외 위주로 추천해줘. "
+                            "정보에 없는 내용은 지어내지 말고, 대신 아는 선에서 일반적인 여행 팁으로 답해줘. "
+                            "답변 끝에는 짧은 후속 질문을 자연스럽게 덧붙여줘."
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
+                ],
             )
             reply_text = response.choices[0].message.content
         else:

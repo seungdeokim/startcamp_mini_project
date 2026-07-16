@@ -61,7 +61,7 @@ npm run lint
 ## 배포
 
 - Netlify 배포 설정은 저장소 루트의 `netlify.toml`에 정의되어 있습니다(base: `frontend`, publish: `dist`, SPA 리다이렉트 포함).
-- Netlify 사이트를 이 저장소와 연동한 뒤, 환경변수 `VITE_API_BASE_URL`을 Render에 배포된 백엔드 주소로 설정해야 합니다.
+- 환경변수 `VITE_API_BASE_URL`은 `netlify.toml`의 `[build.environment]`에 Render 백엔드 주소(`https://startcamp-mini-project.onrender.com`)로 설정되어 있습니다.
 
 ## 추천 IDE 설정
 
