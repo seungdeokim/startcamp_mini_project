@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { getPosts } from '@/api/posts'
 import { ApiError } from '@/api/client'
 import type { Post } from '@/types/post'
 import Pagination from '@/components/common/Pagination.vue'
+import SearchBar from '@/components/common/SearchBar.vue'
 
 const PAGE_SIZE = 10
 
@@ -44,9 +45,10 @@ const pagedPosts = computed(() => {
   return filteredPosts.value.slice(start, start + PAGE_SIZE)
 })
 
-function handleSearch() {
+// 검색어가 바뀌면 첫 페이지로 되돌린다.
+watch(keyword, () => {
   currentPage.value = 1
-}
+})
 
 function handlePageChange(page: number) {
   currentPage.value = page
@@ -62,14 +64,7 @@ function goToDetail(id: number) {
     <h1>게시판</h1>
 
     <div class="board-list__toolbar">
-      <input
-        v-model="keyword"
-        type="text"
-        placeholder="게시글 검색어를 입력하세요"
-        class="board-list__search"
-        @keyup.enter="handleSearch"
-      />
-      <button type="button" class="board-list__search-btn" @click="handleSearch">검색</button>
+      <SearchBar v-model="keyword" placeholder="게시글 검색어를 입력하세요" class="board-list__search" />
       <RouterLink to="/board/write" class="board-list__write-btn">+ 글쓰기</RouterLink>
     </div>
 
@@ -100,28 +95,18 @@ function goToDetail(id: number) {
 
 .board-list__search {
   flex: 1;
-  font-size: 0.7rem;
-  padding: 0.6rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-background);
-  color: var(--color-text);
-}
-
-.board-list__search-btn {
-  padding: 0.6rem 1.1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-background);
-  font-weight: 600;
+  min-width: 0;
 }
 
 .board-list__write-btn {
-  padding: 0.6rem 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1.3rem;
   border-radius: var(--radius-full);
   background: var(--color-primary);
   color: #fff;
-  font-weight: 700;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   white-space: nowrap;
   box-shadow: var(--shadow-sm);
 }
@@ -135,6 +120,7 @@ function goToDetail(id: number) {
   padding: 2rem 0;
   text-align: center;
   color: var(--color-text-soft);
+  font-size: var(--text-sm);
 }
 
 .board-list__status--error {
@@ -174,12 +160,13 @@ function goToDetail(id: number) {
   flex-shrink: 0;
   width: 2rem;
   color: var(--color-text-soft);
-  font-size: 0.8rem;
+  font-size: var(--text-xs);
 }
 
 .board-list__title {
   flex: 1;
-  font-weight: 500;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -188,7 +175,7 @@ function goToDetail(id: number) {
 .board-list__author {
   flex-shrink: 0;
   color: var(--color-text-soft);
-  font-size: 0.85rem;
+  font-size: var(--text-xs);
 }
 
 @media (max-width: 480px) {

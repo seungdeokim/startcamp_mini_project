@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { getTouristSpots } from '@/api/tourist'
 import { ApiError } from '@/api/client'
 import type { TouristSpot } from '@/types/tourist'
 import Pagination from '@/components/common/Pagination.vue'
+import SearchBar from '@/components/common/SearchBar.vue'
 import TouristSpotModal from '@/components/info/TouristSpotModal.vue'
 
 const PAGE_SIZE = 12
@@ -44,9 +45,10 @@ const pagedSpots = computed(() => {
   return filteredSpots.value.slice(start, start + PAGE_SIZE)
 })
 
-function handleSearch() {
+// 검색어가 바뀌면 첫 페이지로 되돌린다.
+watch(keyword, () => {
   currentPage.value = 1
-}
+})
 
 function handlePageChange(page: number) {
   currentPage.value = page
@@ -59,14 +61,7 @@ function handlePageChange(page: number) {
     <p class="info__subtitle">구미/경북 권역의 관광지 정보를 확인해보세요</p>
 
     <div class="info__toolbar">
-      <input
-        v-model="keyword"
-        type="text"
-        placeholder="관광지 이름이나 주소로 검색하세요"
-        class="info__search"
-        @keyup.enter="handleSearch"
-      />
-      <button type="button" class="info__search-btn" @click="handleSearch">검색</button>
+      <SearchBar v-model="keyword" placeholder="관광지 이름이나 주소로 검색하세요" />
     </div>
 
     <p v-if="isLoading" class="info__status">불러오는 중입니다...</p>
@@ -99,37 +94,19 @@ function handlePageChange(page: number) {
 <style scoped>
 .info__subtitle {
   color: var(--color-text-soft);
+  font-size: var(--text-sm);
   margin: 0.25rem 0 1.25rem;
 }
 
 .info__toolbar {
-  display: flex;
-  gap: 0.5rem;
   margin-bottom: 1.25rem;
-}
-
-.info__search {
-  font-size: 0.7rem;
-  flex: 1;
-  padding: 0.6rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-background);
-  color: var(--color-text);
-}
-
-.info__search-btn {
-  padding: 0.6rem 1.1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-background);
-  font-weight: 600;
 }
 
 .info__status {
   padding: 2rem 0;
   text-align: center;
   color: var(--color-text-soft);
+  font-size: var(--text-sm);
 }
 
 .info__status--error {
@@ -177,16 +154,16 @@ function handlePageChange(page: number) {
   align-items: center;
   justify-content: center;
   color: var(--color-text-soft);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
 }
 
 .info__card-body {
-  padding: 0.6rem 0.7rem;
+  padding: 0.7rem 0.75rem 0.8rem;
 }
 
 .info__card-title {
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-md);
   margin-bottom: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -195,7 +172,7 @@ function handlePageChange(page: number) {
 
 .info__card-addr {
   color: var(--color-text-soft);
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

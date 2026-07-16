@@ -115,13 +115,14 @@ async function handleConfirm(password: string) {
 }
 
 .board-detail__title {
-  font-size: 1.35rem;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-extrabold);
   margin-bottom: 0.4rem;
 }
 
 .board-detail__author {
   color: var(--color-text-soft);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 1.25rem;

@@ -144,8 +144,8 @@ function handleCancel() {
 }
 
 .board-write__field span {
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
 }
 
 .board-write__field input,
@@ -156,6 +156,7 @@ function handleCancel() {
   background: var(--color-background-soft);
   color: var(--color-text);
   font-family: inherit;
+  font-size: var(--text-md);
   resize: vertical;
 }
 
@@ -168,12 +169,12 @@ function handleCancel() {
 
 .board-write__field small {
   color: var(--color-text-soft);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
 }
 
 .board-write__error {
   color: var(--color-danger);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .board-write__actions {

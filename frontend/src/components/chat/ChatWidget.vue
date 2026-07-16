@@ -286,13 +286,13 @@ function formatMessage(content: string) {
 }
 
 .chat-panel__title {
-  font-size: 0.9rem;
-  font-weight: 800;
+  font-size: var(--text-md);
+  font-weight: var(--weight-extrabold);
   color: var(--color-heading);
 }
 
 .chat-panel__subtitle {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-soft);
 }
 
@@ -322,7 +322,7 @@ function formatMessage(content: string) {
 }
 
 .chat-welcome__text {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: var(--color-text-soft);
   line-height: 1.5;
   margin-bottom: 0.9rem;
@@ -340,7 +340,7 @@ function formatMessage(content: string) {
   color: var(--color-text);
   border-radius: var(--radius-full);
   padding: 0.5rem 0.9rem;
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -368,7 +368,7 @@ function formatMessage(content: string) {
   max-width: 78%;
   padding: 0.55rem 0.8rem;
   border-radius: var(--radius-md);
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   line-height: 1.55;
   white-space: normal;
   word-break: break-word;
@@ -438,7 +438,7 @@ function formatMessage(content: string) {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   padding: 0.55rem 0.9rem;
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   color: var(--color-text);
   background: var(--color-background-soft);
 }

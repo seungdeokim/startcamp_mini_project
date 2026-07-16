@@ -67,7 +67,7 @@ function handleConfirm() {
 }
 
 .password-modal h2 {
-  font-size: 1.05rem;
+  font-size: var(--text-lg);
   margin-bottom: 1rem;
 }
 
@@ -89,7 +89,7 @@ function handleConfirm() {
 
 .password-modal__error {
   color: var(--color-danger);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   margin-bottom: 0.5rem;
 }
 

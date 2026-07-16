@@ -68,14 +68,14 @@ function goNextBlock() {
   background: var(--color-background);
   border-radius: var(--radius-full);
   color: var(--color-text-soft);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
 }
 
 .pagination__page--active {
-  border-color: var(--color-heading);
-  background: var(--color-heading);
-  color: var(--color-background);
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
 }
 
 .pagination__arrow:disabled {

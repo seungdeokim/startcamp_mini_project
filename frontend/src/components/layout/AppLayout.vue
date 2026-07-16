@@ -47,7 +47,7 @@ const isFullBleed = computed(() => Boolean(route.meta.fullBleed))
 .app-layout__footer {
   text-align: center;
   padding: 1.5rem;
-  font-size: 0.8rem;
+  font-size: var(--text-xs);
   color: var(--color-text-soft);
   border-top: 1px solid var(--color-border);
 }

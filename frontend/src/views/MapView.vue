@@ -9,13 +9,16 @@ import { calculateActivityIndex } from '@/utils/activityIndex'
 import { createMarkerImage } from '@/utils/kakaoMarkerImage'
 import type { TouristSpot } from '@/types/tourist'
 import type { WeatherInfo } from '@/types/weather'
-import { Search, ChevronLeft } from '@lucide/vue'
+import { Search, ChevronLeft, MapPin } from '@lucide/vue'
 
-const FILTERS = [
-  { key: 'all', label: '전체' },
-  { key: 'A01', label: '자연관광지' },
-  { key: 'A02', label: '인문관광지' },
-] as const
+// 날씨 배지 지역 한글 라벨(백엔드가 영문 region을 그대로 echo하므로 매핑해서 보여준다).
+const REGION_LABELS: Record<string, string> = {
+  Gumi: '구미',
+  Daegu: '대구',
+  Gimcheon: '김천',
+  Sangju: '상주',
+  Chilgok: '칠곡',
+}
 
 // 클러스터 배지 스타일: 개수 구간(10 미만/10~49/50 이상)에 따라 커지는 3단계.
 // 마커와 톤을 맞추기 위해 브랜드 오렌지 대신 중립 톤(검정 반투명)을 사용한다.
@@ -66,7 +69,6 @@ const isLoadingSpots = ref(true)
 const spotsError = ref('')
 
 const keyword = ref('')
-const activeFilter = ref<(typeof FILTERS)[number]['key']>('all')
 
 const isKakaoReady = ref(false)
 const mapError = ref('')
@@ -102,15 +104,46 @@ const activityIndex = computed(() => {
 
 const filteredSpots = computed(() => {
   const keywordTrimmed = keyword.value.trim().toLowerCase()
-  return spots.value.filter((spot) => {
-    const matchesKeyword =
-      !keywordTrimmed ||
+  if (!keywordTrimmed) return spots.value
+  return spots.value.filter(
+    (spot) =>
       spot.title.toLowerCase().includes(keywordTrimmed) ||
-      spot.addr1.toLowerCase().includes(keywordTrimmed)
-    const matchesFilter = activeFilter.value === 'all' || spot.cat1 === activeFilter.value
-    return matchesKeyword && matchesFilter
-  })
+      spot.addr1.toLowerCase().includes(keywordTrimmed),
+  )
 })
+
+// 두 좌표 간 거리(km) — Haversine 공식.
+function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const R = 6371
+  const dLat = ((bLat - aLat) * Math.PI) / 180
+  const dLng = ((bLng - aLng) * Math.PI) / 180
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((aLat * Math.PI) / 180) * Math.cos((bLat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(s))
+}
+
+// 선택된 관광지 기준 가까운 순 최대 4곳(자기 자신 제외). 검색어와 무관하게 전체에서 추천한다.
+const nearbySpots = computed(() => {
+  const s = selectedSpot.value
+  if (!s) return []
+  const lat = parseFloat(s.mapy)
+  const lng = parseFloat(s.mapx)
+  if (!lat || !lng) return []
+  return spots.value
+    .filter((o) => o.contentid !== s.contentid && parseFloat(o.mapy) && parseFloat(o.mapx))
+    .map((o) => ({ spot: o, dist: distanceKm(lat, lng, parseFloat(o.mapy), parseFloat(o.mapx)) }))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 4)
+})
+
+function formatDistance(km: number): string {
+  return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`
+}
+
+const weatherRegionLabel = computed(() =>
+  weather.value ? (REGION_LABELS[weather.value.region] ?? weather.value.region) : '',
+)
 
 async function loadSpots() {
   isLoadingSpots.value = true
@@ -124,12 +157,11 @@ async function loadSpots() {
   }
 }
 
-async function loadWeather(spot: TouristSpot) {
+async function loadWeather(region: string) {
   isLoadingWeather.value = true
   weatherError.value = ''
-  weather.value = null
   try {
-    weather.value = await getWeather(extractRegionFromAddress(spot.addr1))
+    weather.value = await getWeather(region)
   } catch (err) {
     weatherError.value = err instanceof ApiError ? err.message : '날씨 정보를 불러오지 못했습니다.'
   } finally {
@@ -181,8 +213,8 @@ function showInfoOverlay(spot: TouristSpot, lat: number, lng: number) {
 
   const position = new window.kakao.maps.LatLng(lat, lng)
   if (!infoOverlay) {
-    // xAnchor/yAnchor는 0(=카카오 쪽 앵커링 없음)으로 두고, 위치는 아래 CSS transform 하나로만 잡는다.
-    // 앵커와 transform을 동시에 쓰면 이중 보정되어 카드 위치가 어긋난다.
+    // 카카오 앵커링은 끄고(0,0 = 콘텐츠 좌상단이 핀 위치), 위치 보정은 아래 CSS transform 하나로만 잡는다.
+    // 가로 중앙 정렬은 카드 폭(128px)의 절반인 -64px 픽셀값으로 직접 이동시킨다(% 해석 편차 방지).
     infoOverlay = new window.kakao.maps.CustomOverlay({ position, content: el, xAnchor: 0, yAnchor: 0, zIndex: 30 })
   } else {
     infoOverlay.setPosition(position)
@@ -213,18 +245,8 @@ function handleMarkerLeave() {
 function handleMarkerClick(spot: TouristSpot, lat: number, lng: number) {
   markMarkerInteraction()
   isOverlayPinned = true
-  try {
-    showInfoOverlay(spot, lat, lng)
-  } catch (e) {
-    console.error('DEBUG showInfoOverlay threw', e)
-  }
-  console.log('DEBUG about to call selectSpot', spot.title)
-  try {
-    selectSpot(spot)
-  } catch (e) {
-    console.error('DEBUG selectSpot threw', e)
-  }
-  console.log('DEBUG selectSpot done, selectedSpot=', selectedSpot.value?.title)
+  showInfoOverlay(spot, lat, lng)
+  selectSpot(spot)
 }
 
 function closePinnedOverlay() {
@@ -360,7 +382,7 @@ function handleSheetTouchEnd(event: TouchEvent) {
 
 watch(selectedSpot, (spot) => {
   updateActiveMarker()
-  if (spot) loadWeather(spot)
+  loadWeather(spot ? extractRegionFromAddress(spot.addr1) : 'Gumi')
 })
 
 watch(filteredSpots, () => {
@@ -377,6 +399,7 @@ watch(isKakaoReady, (ready) => {
 
 onMounted(() => {
   loadSpots()
+  loadWeather('Gumi')
   loadKakaoMaps()
     .then(() => {
       isKakaoReady.value = true
@@ -406,18 +429,24 @@ onUnmounted(() => {
         <Search class="map-page__search-icon" :size="18" />
         <input v-model="keyword" type="text" placeholder="관광지 이름이나 주소로 검색해보세요" />
       </label>
+    </div>
 
-      <div class="map-page__chips">
-        <button
-          v-for="filter in FILTERS"
-          :key="filter.key"
-          type="button"
-          class="map-page__chip"
-          :class="{ 'map-page__chip--active': activeFilter === filter.key }"
-          @click="activeFilter = filter.key"
-        >
-          {{ filter.label }}
-        </button>
+    <div v-if="weather" class="map-page__weather" :class="{ 'map-page__weather--dim': isLoadingWeather }">
+      <div class="map-page__weather-head">
+        <MapPin :size="12" :stroke-width="2.5" />
+        <span>{{ weatherRegionLabel }}</span>
+      </div>
+      <div class="map-page__weather-temp">
+        <strong>{{ weather.temp }}°</strong>
+        <span class="map-page__weather-desc">{{ weather.weather }}</span>
+      </div>
+      <div class="map-page__weather-humid">습도 {{ weather.humidity ?? '-' }}%</div>
+      <div
+        v-if="activityIndex"
+        class="map-page__weather-tag"
+        :class="`map-page__activity--${activityIndex.level}`"
+      >
+        {{ activityIndex.text }}
       </div>
     </div>
 
@@ -471,29 +500,29 @@ onUnmounted(() => {
           <p class="map-page__detail-addr">{{ selectedSpot.addr1 }}</p>
           <p v-if="selectedSpot.tel" class="map-page__detail-addr">{{ selectedSpot.tel }}</p>
 
-          <p v-if="isLoadingWeather" class="map-page__status">날씨 정보를 불러오는 중...</p>
-          <p v-else-if="weatherError" class="map-page__status map-page__status--error">{{ weatherError }}</p>
-
-          <template v-else-if="weather">
-            <div class="map-page__weather-grid">
-              <div class="map-page__weather-cell">
-                <span>기온</span>
-                <strong>{{ weather.temp }}°C</strong>
-              </div>
-              <div class="map-page__weather-cell">
-                <span>습도</span>
-                <strong>{{ weather.humidity ?? '-' }}%</strong>
-              </div>
-              <div class="map-page__weather-cell">
-                <span>날씨</span>
-                <strong>{{ weather.weather }}</strong>
-              </div>
-            </div>
-
-            <div v-if="activityIndex" class="map-page__activity" :class="`map-page__activity--${activityIndex.level}`">
-              {{ activityIndex.text }}
-            </div>
-          </template>
+          <div v-if="nearbySpots.length" class="map-page__nearby">
+            <p class="map-page__nearby-title">이 근처 관광지</p>
+            <ul class="map-page__nearby-list">
+              <li v-for="item in nearbySpots" :key="item.spot.contentid">
+                <button type="button" class="map-page__nearby-card" @click="selectSpot(item.spot)">
+                  <img
+                    v-if="item.spot.firstimage"
+                    :src="item.spot.firstimage"
+                    :alt="item.spot.title"
+                    class="map-page__nearby-thumb"
+                  />
+                  <div v-else class="map-page__nearby-thumb map-page__nearby-thumb--empty">
+                    <MapPin :size="16" />
+                  </div>
+                  <div class="map-page__nearby-info">
+                    <span class="map-page__nearby-name">{{ item.spot.title }}</span>
+                    <span class="map-page__nearby-addr">{{ item.spot.addr1 }}</span>
+                  </div>
+                  <span class="map-page__nearby-dist">{{ formatDistance(item.dist) }}</span>
+                </button>
+              </li>
+            </ul>
+          </div>
         </template>
       </div>
     </div>
@@ -555,7 +584,7 @@ onUnmounted(() => {
   outline: none;
   background: transparent;
   color: var(--color-text);
-  font-size: 0.95rem;
+  font-size: var(--text-md);
 }
 
 .map-page__search-icon {
@@ -563,32 +592,70 @@ onUnmounted(() => {
   color: var(--color-text-soft);
 }
 
-.map-page__chips {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-}
-
-.map-page__chip {
-  flex-shrink: 0;
-  padding: 0.45rem 0.95rem;
-  border-radius: var(--radius-full);
-  border: none;
+/* 지도 우측 상단 날씨 배지 */
+.map-page__weather {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 11;
+  width: 148px;
+  padding: 0.7rem 0.85rem;
   background: var(--color-background);
-  color: var(--color-text-soft);
-  font-weight: 700;
-  font-size: 0.82rem;
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  transition: opacity 0.2s ease;
 }
 
-.map-page__chip--active {
-  background: var(--color-heading);
-  color: var(--color-background);
+.map-page__weather--dim {
+  opacity: 0.55;
+}
+
+.map-page__weather-head {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+}
+
+.map-page__weather-temp {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.map-page__weather-temp strong {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-extrabold);
+  color: var(--color-heading);
+}
+
+.map-page__weather-desc {
+  font-size: var(--text-xs);
+  color: var(--color-text-soft);
+}
+
+.map-page__weather-humid {
+  font-size: var(--text-xs);
+  color: var(--color-text-soft);
+  margin-top: 0.1rem;
+}
+
+.map-page__weather-tag {
+  margin-top: 0.5rem;
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.4rem;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  line-height: 1.3;
+  text-align: center;
 }
 
 .map-page__panel {
   position: absolute;
-  top: 6.75rem;
+  top: 4.75rem;
   left: 1rem;
   bottom: 1rem;
   width: 360px;
@@ -614,7 +681,8 @@ onUnmounted(() => {
 
 .map-page__panel-count {
   color: var(--color-text-soft);
-  font-size: 0.8rem;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   padding: 1rem 0 0.5rem;
 }
 
@@ -622,7 +690,7 @@ onUnmounted(() => {
   padding: 2rem 0;
   text-align: center;
   color: var(--color-text-soft);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .map-page__status--error {
@@ -655,13 +723,13 @@ onUnmounted(() => {
 }
 
 .map-page__spot-title {
-  font-weight: 700;
-  font-size: 0.9rem;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-md);
 }
 
 .map-page__spot-addr {
   color: var(--color-text-soft);
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
 }
 
 .map-page__back-btn {
@@ -671,8 +739,8 @@ onUnmounted(() => {
   border: none;
   background: transparent;
   color: var(--color-text-soft);
-  font-weight: 600;
-  font-size: 0.85rem;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
   padding: 1rem 0 0.5rem;
 }
 
@@ -690,49 +758,108 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   color: var(--color-text-soft);
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
 }
 
 .map-page__detail-title {
-  font-size: 1.15rem;
+  font-size: var(--text-lg);
   margin-bottom: 0.3rem;
 }
 
 .map-page__detail-addr {
   color: var(--color-text-soft);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   margin-bottom: 0.25rem;
 }
 
-.map-page__weather-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin: 1rem 0 0.75rem;
+.map-page__nearby {
+  margin-top: 1.25rem;
 }
 
-.map-page__weather-cell {
+.map-page__nearby-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-extrabold);
+  color: var(--color-heading);
+  margin-bottom: 0.6rem;
+}
+
+.map-page__nearby-list {
+  list-style: none;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-  background: var(--color-background-soft);
-  border-radius: var(--radius-md);
-  padding: 0.6rem 0.3rem;
-  font-size: 0.75rem;
+  gap: 0.5rem;
 }
 
-.map-page__weather-cell span {
+.map-page__nearby-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  text-align: left;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.map-page__nearby-card:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.map-page__nearby-thumb {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--color-background-mute);
+}
+
+.map-page__nearby-thumb--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--color-text-soft);
 }
 
-.map-page__activity {
-  text-align: center;
-  border-radius: var(--radius-md);
-  padding: 0.6rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  border: 1px solid transparent;
+.map-page__nearby-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.map-page__nearby-name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-page__nearby-addr {
+  font-size: var(--text-xs);
+  color: var(--color-text-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-page__nearby-dist {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
 }
 
 .map-page__activity--danger {
@@ -766,6 +893,13 @@ onUnmounted(() => {
 
   .map-page__top-overlay {
     right: 1rem;
+  }
+
+  /* 모바일은 검색바가 전체폭이라 날씨 배지를 그 아래로 내린다. */
+  .map-page__weather {
+    top: 4.4rem;
+    right: 0.8rem;
+    width: 132px;
   }
 
   .map-page__panel {
@@ -803,8 +937,8 @@ onUnmounted(() => {
   }
 
   .map-page__panel-summary {
-    font-weight: 700;
-    font-size: 0.9rem;
+    font-weight: var(--weight-bold);
+    font-size: var(--text-md);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -820,12 +954,34 @@ onUnmounted(() => {
 </style>
 
 <style>
+/* 핀 아래 항상 떠 있는 이름 라벨 — 흰색 라운드 알약 형태 */
+.marker-name-label {
+  margin-top: 5px;
+  max-width: 132px;
+  padding: 3px 9px;
+  background: #ffffff;
+  border: 1px solid rgba(33, 37, 41, 0.06);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(33, 37, 41, 0.18);
+  color: #212529;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
 .marker-overlay {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 128px;
-  transform: translate(-50%, calc(-100% - 12px));
+  width: 135px;
+  /* 가로: 폭의 절반(-64px)만큼 왼쪽으로 옮겨 핀 정중앙 정렬. 세로: 핀(최대 36px)을 넘어서도록 위로 올림. */
+  transform: translate(-67px, calc(-100% - 42px));
   background: #ffffff;
   border-radius: var(--radius-md, 12px);
   padding: 0.4rem;
@@ -860,14 +1016,14 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   color: var(--color-text-soft, #868e96);
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
 }
 
 .marker-overlay__title {
   display: block;
   color: var(--color-heading, #212529);
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;

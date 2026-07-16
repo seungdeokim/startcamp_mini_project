@@ -44,15 +44,15 @@ import { RouterLink } from 'vue-router'
 }
 
 .app-header__brand {
-  font-size: 1.3rem;
+  font-size: var(--text-xl);
   font-weight: 900;
   letter-spacing: -0.03em;
   color: var(--color-primary);
 }
 
 .app-header__tagline {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   color: var(--color-text-soft);
   letter-spacing: -0.01em;
 }
@@ -65,15 +65,23 @@ import { RouterLink } from 'vue-router'
 .app-header__nav a {
   color: var(--color-text-soft);
   text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   padding: 0.4rem 0.85rem;
   border-radius: var(--radius-full);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.app-header__nav a:hover {
+  color: var(--color-primary);
+  text-decoration: none;
 }
 
 .app-header__nav a.router-link-active {
-  color: var(--color-heading);
-  background: var(--color-background-soft);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 @media (max-width: 720px) {
