@@ -301,7 +301,7 @@ function renderMarkers() {
     const nameLabel = new window.kakao.maps.CustomOverlay({
       position: new window.kakao.maps.LatLng(lat, lng),
       content: labelEl,
-      xAnchor: 0,
+      xAnchor: 0.5,
       yAnchor: 0,
       zIndex: 15,
     })
