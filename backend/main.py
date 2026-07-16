@@ -210,23 +210,41 @@ def chat_bot(request: ChatRequest):
     try:
         file_path = "구미_경북권_관광지.json"
         spots_info = ""
+        msg = request.message
+        
         if os.path.exists(file_path):
             with open(file_path, "r", encoding="utf-8") as f:
                 json_data = json.load(f)
                 items = json_data.get("items", [])
-                spots_info = ", ".join([f"{s.get('title')}({s.get('addr1', '')})" for s in items[:20]])
+                
+                # 1. 사용자 질문에 맞춰 유동적으로 관광지 필터링
+                relevant_spots = []
+                for s in items:
+                    title = s.get('title', '')
+                    # 질문에 관광지 이름이 직접 포함되어 있으면 추가
+                    if title and title in msg:
+                        relevant_spots.append(s)
+                
+                # 2. 딱히 겹치는 키워드가 없으면 전체에서 랜덤으로 4개만 추출 (토큰 절약 및 다양성 확보)
+                if not relevant_spots:
+                    relevant_spots = random.sample(items, min(4, len(items))) if items else []
+                else:
+                    relevant_spots = relevant_spots[:4] # 최대 4개까지만 제한
+                    
+                # 보기 좋게 문자열로 포맷팅
+                spots_info = "\n".join([f"- {s.get('title')} ({s.get('addr1', '주소 미상')})" for s in relevant_spots])
 
-        msg = request.message
         current_api_key = os.getenv("OPENAI_API_KEY")
 
+        # 프롬프트 개선: 고정 20개가 아닌, 필터링/랜덤화된 소수 정예 정보만 전달
         prompt = f"""
         너는 구미 및 경북권 스마트 관광 도우미야. 
-        아래 참고용 지역 관광지 데이터와 사용자의 질문을 바탕으로 친절하고 유익한 여행 추천 및 안내 답변을 작성해줘.
+        아래 제공된 [추천 관광지 정보]를 바탕으로 사용자의 [질문]에 친절하고 유익하게 답변해줘.
         
-        [참고 관광지 목록]
+        [추천 관광지 정보]
         {spots_info}
         
-        [사용자 질문]
+        [질문]
         {msg}
         """
         
@@ -234,8 +252,9 @@ def chat_bot(request: ChatRequest):
             from openai import OpenAI
             client = OpenAI(api_key=current_api_key)
             
+            # gpt-5-mini는 없는 모델이므로 에러 방지를 위해 gpt-4o-mini로 변경
             response = client.chat.completions.create(
-                model="gpt-5-mini",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a helpful travel assistant."},
                     {"role": "user", "content": prompt}
