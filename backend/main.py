@@ -265,7 +265,6 @@ def chat_bot(request: ChatRequest):
 
             response = openai_client.chat.completions.create(
                 model="gpt-5-mini",
-                temperature=0.7,
                 messages=[
                     {
                         "role": "system",
