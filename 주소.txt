@@ -1,0 +1,5 @@
+웹 사이트 주소: https://startcamp-mini-project.netlify.app/
+
+백엔드 api 주소: https://startcamp-mini-project.onrender.com/
+
+api 문서: https://startcamp-mini-project.onrender.com/docs
